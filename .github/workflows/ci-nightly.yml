@@ -1,0 +1,11 @@
+name: CI Nightly
+
+on:
+  schedule:
+    - cron: '0 17 * * *' # KST 02:00
+
+jobs:
+  full_gate:
+    uses: ./.github/workflows/ci-pr.yml
+    with:
+      run_integration: true

@@ -1,0 +1,43 @@
+name: Release Check
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'release/*'
+
+jobs:
+  full_gate:
+    uses: ./.github/workflows/ci-pr.yml
+    with:
+      run_integration: true
+
+  release_versioning_guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate release metadata files
+        run: |
+          # Keep checks lightweight and repo-agnostic.
+          test -f docs/prd-voice-phone-finder-mvp.md
+          test -f docs/technical-spec-voice-phone-finder-mvp.md
+          test -f docs/technical-design-voice-phone-finder-mvp.md
+          # Optional conventional files; warn only when missing.
+          [ -f CHANGELOG.md ] || echo "WARN: CHANGELOG.md not found"
+          [ -f VERSION ] || echo "WARN: VERSION file not found"
+
+  release_signing_guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate signing secrets presence
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          # Fail release pipeline if signing prerequisites are missing.
+          test -n "${ANDROID_KEYSTORE_B64}"
+          test -n "${ANDROID_KEYSTORE_PASSWORD}"
+          test -n "${ANDROID_KEY_ALIAS}"
+          test -n "${ANDROID_KEY_PASSWORD}"

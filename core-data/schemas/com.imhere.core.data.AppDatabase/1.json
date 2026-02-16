@@ -1,0 +1,17 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "imhere_v1",
+    "entities": [
+      {
+        "tableName": "keyword_entries",
+        "createSql": "CREATE TABLE IF NOT EXISTS `keyword_entries` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `phrase` TEXT NOT NULL, `normalized_phrase` TEXT NOT NULL, `created_at_epoch_ms` INTEGER NOT NULL, `updated_at_epoch_ms` INTEGER NOT NULL)"
+      },
+      {
+        "tableName": "find_sessions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `find_sessions` (`id` TEXT NOT NULL, `triggered_keyword` TEXT NOT NULL, `trigger_confidence` REAL, `started_at_epoch_ms` INTEGER NOT NULL, `ended_at_epoch_ms` INTEGER, `stop_reason` TEXT, `stage_reached` INTEGER NOT NULL, `force_playback_applied` INTEGER NOT NULL, `battery_saver_active` INTEGER NOT NULL, `detection_latency_ms` INTEGER, `stop_latency_ms` INTEGER, `created_at_epoch_ms` INTEGER NOT NULL, PRIMARY KEY(`id`))"
+      }
+    ]
+  }
+}

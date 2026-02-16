@@ -1,0 +1,11 @@
+name: CI Main
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  full_gate:
+    uses: ./.github/workflows/ci-pr.yml
+    with:
+      run_integration: true

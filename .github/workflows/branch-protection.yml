@@ -1,0 +1,24 @@
+name: Apply Branch Protection
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: 'owner/repo (e.g. org/project)'
+        required: true
+        type: string
+      branch:
+        description: 'branch name'
+        required: false
+        default: 'main'
+        type: string
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: chmod +x scripts/ci/apply_branch_protection.sh
+      - env:
+          GH_TOKEN: ${{ secrets.GH_ADMIN_TOKEN }}
+        run: scripts/ci/apply_branch_protection.sh "${{ inputs.repo }}" "${{ inputs.branch }}"
