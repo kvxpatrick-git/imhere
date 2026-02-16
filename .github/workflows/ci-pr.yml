@@ -168,6 +168,8 @@ jobs:
           fi
       - name: Gitleaks scan
         uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Forbidden log pattern check
         run: |
           ! rg -n "Log\\..*(keyword|phrase|triggered_keyword)" app core-* feature-* platform-* --glob "**/*.kt" \

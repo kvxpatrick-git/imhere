@@ -24,7 +24,10 @@ fi
 base_ref="${GITHUB_BASE_REF:-}"
 if [[ -n "$base_ref" ]]; then
   git fetch --depth=1 origin "$base_ref"
-  changed_files="$(git diff --name-only "origin/$base_ref"...HEAD)"
+  if ! changed_files="$(git diff --name-only "origin/$base_ref"...HEAD 2>/dev/null)"; then
+    # Fallback for shallow histories where merge-base cannot be resolved.
+    changed_files="$(git diff --name-only "origin/$base_ref" HEAD)"
+  fi
   if echo "$changed_files" | rg -q "Entity\\.kt|@Entity|core-data/.*/entity"; then
     if ! echo "$changed_files" | rg -q "schemas/.*\\.json"; then
       echo "Room entity changed but schema json not updated"
