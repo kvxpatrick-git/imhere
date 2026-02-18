@@ -10,6 +10,11 @@ on:
         required: false
         type: boolean
         default: false
+      run_runtime_smoke:
+        description: "Run Android runtime smoke (emulator + logcat crash/ANR check)"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   preflight:
@@ -200,3 +205,26 @@ jobs:
           else
             ./gradlew test --tests "*Integration*"
           fi
+
+  runtime_smoke_android:
+    runs-on: ubuntu-latest
+    needs: [preflight]
+    if: needs.preflight.outputs.has_gradle == 'true' && github.event_name == 'workflow_call' && inputs.run_runtime_smoke == true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v3
+      - name: Android runtime smoke on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: |
+            ./gradlew :app:assembleDebug
+            chmod +x scripts/ci/check_android_runtime_smoke.sh
+            scripts/ci/check_android_runtime_smoke.sh --require-device
