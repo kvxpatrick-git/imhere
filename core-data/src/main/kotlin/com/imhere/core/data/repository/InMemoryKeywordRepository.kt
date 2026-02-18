@@ -16,7 +16,9 @@ class InMemoryKeywordRepository : KeywordRepository {
         list.map(LocalObfuscator::decode)
     }
 
-    suspend fun saveKeywords(keywords: List<String>) {
+    override suspend fun get(): List<String> = encodedKeywords.value.map(LocalObfuscator::decode)
+
+    override suspend fun saveKeywords(keywords: List<String>) {
         val normalized = keywords.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
         lock.withLock {
             encodedKeywords.value = normalized.map(LocalObfuscator::encode)

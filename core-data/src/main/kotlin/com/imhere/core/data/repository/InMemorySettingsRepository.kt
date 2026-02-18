@@ -14,7 +14,8 @@ class InMemorySettingsRepository(
         twoStepTriggerEnabled = false,
         confirmPhrase = "여기 있어",
         batterySaverEnabled = true,
-        batteryThresholdPercent = 20
+        batteryThresholdPercent = 20,
+        autoResumeOnBoot = false
     )
 ) : SettingsRepository {
     private val lock = Mutex()

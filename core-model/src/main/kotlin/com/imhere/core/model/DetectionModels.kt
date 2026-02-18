@@ -38,5 +38,6 @@ data class UserSettings(
     val twoStepTriggerEnabled: Boolean,
     val confirmPhrase: String,
     val batterySaverEnabled: Boolean,
-    val batteryThresholdPercent: Int = 20
+    val batteryThresholdPercent: Int = 20,
+    val autoResumeOnBoot: Boolean = false
 )

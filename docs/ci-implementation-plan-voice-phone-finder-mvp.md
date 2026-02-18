@@ -189,6 +189,23 @@ CI는 3계층 게이트로 구성한다.
 실패 기준:
 - 핵심 시나리오 실패 1건 이상
 
+### 5.9 Job I: Runtime Smoke (Main/Nightly/Release)
+목적:
+- 앱 실행 직후 크래시/ANR 회귀를 병합 전 조기 탐지
+
+실행:
+- Android Emulator(API 34) 부팅
+- `./gradlew :app:assembleDebug`
+- `scripts/ci/check_android_runtime_smoke.sh --require-device`
+
+검사 규칙:
+1. `FATAL EXCEPTION` 로그 존재 시 실패
+2. `ANR in com.imhere.app` 로그 존재 시 실패
+3. 앱 프로세스의 치명적 예외 패턴(`Process: com.imhere.app ... Exception/Error`, `SIGSEGV`) 존재 시 실패
+
+실패 기준:
+- 크래시/ANR 패턴 1건 이상
+
 ## 6. Required Checks 정책
 PR merge required checks:
 1. `preflight`
@@ -200,6 +217,7 @@ PR merge required checks:
 7. `security_privacy`
 
 `Integration Smoke`는 `main`/`nightly` 필수.
+`Runtime Smoke`는 `main`/`nightly`/`release` 필수.
 
 ## 7. 아키텍처 규칙 구현 상세
 
@@ -346,6 +364,7 @@ PR merge required checks:
 - [x] `scripts/ci/check_docs_consistency.sh`
 - [x] `scripts/ci/check_architecture_imports.sh`
 - [x] `scripts/ci/check_room_schema.sh`
+- [x] `scripts/ci/check_android_runtime_smoke.sh`
 - [x] `scripts/ci/apply_branch_protection.sh`
 - [x] Room schema export 설정
 - [x] migration 테스트 템플릿

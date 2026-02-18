@@ -45,7 +45,8 @@ class FinderOrchestrator(
         twoStepTriggerEnabled = false,
         confirmPhrase = "여기 있어",
         batterySaverEnabled = true,
-        batteryThresholdPercent = 20
+        batteryThresholdPercent = 20,
+        autoResumeOnBoot = false
     )
 
     private var wakeKeywords: List<String> = listOf("폰아 울려")
@@ -74,7 +75,7 @@ class FinderOrchestrator(
 
             if (engineCollectionJob == null) {
                 engineCollectionJob = scope.launch {
-                    launch { voiceDetectionEngine.wakeEvents.collect { onWakeDetected() } }
+                    launch { voiceDetectionEngine.wakeEvents.collect { onWakeDetected(it.keyword) } }
                     launch { voiceDetectionEngine.stopEvents.collect { onStopDetected() } }
                     launch { voiceDetectionEngine.errors.collect { onEngineError(it.code, it.recoverable) } }
                 }
@@ -82,8 +83,16 @@ class FinderOrchestrator(
         }
     }
 
-    suspend fun onWakeDetected() {
+    suspend fun onWakeDetected(keyword: String? = null) {
         stateMutex.withLock {
+            val isConfirmKeyword = keyword != null &&
+                keyword.equals(runtimeSettings.confirmPhrase, ignoreCase = true) &&
+                stateMachine.currentState() == SystemState.PENDING_CONFIRMATION
+            if (isConfirmKeyword) {
+                handleConfirmationLocked()
+                return@withLock
+            }
+
             val decision = policyManager.evaluateTrigger(
                 TriggerInput(
                     twoStepEnabled = runtimeSettings.twoStepTriggerEnabled,
@@ -116,19 +125,7 @@ class FinderOrchestrator(
 
     suspend fun onConfirmPhrase() {
         stateMutex.withLock {
-            confirmationTimeoutJob?.cancel()
-            val decision = policyManager.evaluateTrigger(
-                TriggerInput(
-                    twoStepEnabled = true,
-                    hasWake = true,
-                    hasConfirm = true,
-                    confirmWithinSec = 0,
-                    cooldownRemainingSec = 0
-                )
-            )
-            if (decision is TriggerDecision.StartSession && stateMachine.onConfirmDetected() is SystemState.TRIGGERED) {
-                startTriggeredSessionLocked(1)
-            }
+            handleConfirmationLocked()
         }
     }
 
@@ -206,6 +203,22 @@ class FinderOrchestrator(
             stateMutex.withLock {
                 stateMachine.onConfirmationTimedOut()
             }
+        }
+    }
+
+    private suspend fun handleConfirmationLocked() {
+        confirmationTimeoutJob?.cancel()
+        val decision = policyManager.evaluateTrigger(
+            TriggerInput(
+                twoStepEnabled = true,
+                hasWake = true,
+                hasConfirm = true,
+                confirmWithinSec = 0,
+                cooldownRemainingSec = 0
+            )
+        )
+        if (decision is TriggerDecision.StartSession && stateMachine.onConfirmDetected() is SystemState.TRIGGERED) {
+            startTriggeredSessionLocked(1)
         }
     }
 

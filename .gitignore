@@ -9,3 +9,6 @@
 
 # OS
 .DS_Store
+
+# Local SDK
+local.properties

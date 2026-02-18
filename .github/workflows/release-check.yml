@@ -11,6 +11,7 @@ jobs:
     uses: ./.github/workflows/ci-pr.yml
     with:
       run_integration: true
+      run_runtime_smoke: true
 
   release_versioning_guard:
     runs-on: ubuntu-latest
